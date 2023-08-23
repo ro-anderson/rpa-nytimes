@@ -3,7 +3,7 @@
 
 tasks:
   Group of Tasks:
-    shell: python -m tasks.py
+    shell: python tasks.py
 
 devTasks: {}
 
