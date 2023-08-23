@@ -3,7 +3,7 @@
 
 tasks:
   Group of Tasks:
-    shell: python -m robocorp.tasks run tasks.py
+    shell: python -m tasks.py
 
 devTasks: {}
 
