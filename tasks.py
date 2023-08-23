@@ -10,10 +10,12 @@ def robot_spare_bin_python():
     open_the_intranet_website()
     log_in()
 
+@task
 def open_the_intranet_website():
     """Navigates to the given URL"""
     browser.goto("https://robotsparebinindustries.com/")
 
+@task
 def log_in():
     """Fills in the login form and clicks the 'Log in' button"""
     page = browser.page()
