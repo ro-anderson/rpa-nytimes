@@ -1,0 +1,10 @@
+[
+  {
+      "payload": {
+        "search_phrase": "python",
+        "news_category": "Tech",
+        "number_of_months": 2 
+      },
+      "files": {}
+  }
+]
