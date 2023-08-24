@@ -23,15 +23,13 @@ def create_excel():
     # Create modern format workbook with a path set.
     excel_lib.create_workbook(path="./output/test.xlsx", fmt="xlsx")
 
-    # Create a new Excel file
-
-
     # Append an existing Table object
     table = {
         "name": ["Sara", "Beth", "Amy"],
         "age":  [    48,     21,     57],
         }
-    excel_lib.append_rows_to_worksheet(table)
+    
+    excel_lib.append_rows_to_worksheet(table, header=True)
 
     excel_lib.save_workbook()
     
