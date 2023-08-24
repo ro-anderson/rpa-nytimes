@@ -1,7 +1,9 @@
 from RPA.Browser.Selenium import Selenium
 from RPA.Robocorp.WorkItems import WorkItems
+from RPA.Excel.Files import Files
 
 browser_lib = Selenium()
+excel_lib = Files()
 
 def get_work_item_data():
 
@@ -14,6 +16,25 @@ def get_work_item_data():
     print(input_wi['number_of_months'])
 
     return input_wi["search_phrase"]
+
+def create_excel():
+
+
+    # Create modern format workbook with a path set.
+    excel_lib.create_workbook(path="./output/test.xlsx", fmt="xlsx")
+
+    # Create a new Excel file
+
+
+    # Append an existing Table object
+    table = {
+        "name": ["Sara", "Beth", "Amy"],
+        "age":  [    48,     21,     57],
+        }
+    excel_lib.append_rows_to_worksheet(table)
+
+    excel_lib.save_workbook()
+    
 
 def open_the_website(url):
     browser_lib.open_available_browser(url)
@@ -36,6 +57,7 @@ def main():
         open_the_website("https://robocorp.com/docs/")
         search_for()
         store_screenshot("output/screenshot.png")
+        create_excel()
     finally:
         browser_lib.close_all_browsers()
 
