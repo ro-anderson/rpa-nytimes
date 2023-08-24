@@ -19,26 +19,35 @@ def get_work_item_data():
 
     return input_wi["search_phrase"]
 
-def create_table():
+def create_news_table():
     table = {
-        "name": ["Sara", "Beth", "Amy"],
-        "age":  [    48,     21,     57],
-        }
+        "title": ["Sample News Headline 1", "Sample News Headline 2", "Sample News Headline 3"],
+        "date": ["2023-08-23", "2023-08-22", "2023-08-21"],
+        "description": [
+            "This is a description for Sample News 1.",
+            "This is a description for Sample News 2.",
+            "This is a description for Sample News 3."
+        ],
+        "picture": [
+            "path/to/image1.jpg",
+            "path/to/image2.jpg",
+            "path/to/image3.jpg"
+        ]
+    }
     return table
-
 
 def create_excel():
 
 
     # Create modern format workbook with a path set.
-    excel_lib.create_workbook(path="./output/test.xlsx", fmt="xlsx")
+    excel_lib.create_workbook(path="./output/news.xlsx", fmt="xlsx")
 
     # Append an existing Table object
-    table = create_table() 
+    table = create_news_table()
     
     excel_lib.append_rows_to_worksheet(table, header=True)
 
-    excel_lib.save_workbook("./output/test.xlsx")
+    excel_lib.save_workbook("./output/news.xlsx")
     
 
 def open_the_website(url):
