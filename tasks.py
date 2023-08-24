@@ -19,6 +19,14 @@ def get_work_item_data():
 
     return input_wi["search_phrase"]
 
+def create_table():
+    table = {
+        "name": ["Sara", "Beth", "Amy"],
+        "age":  [    48,     21,     57],
+        }
+    return table
+
+
 def create_excel():
 
 
@@ -26,10 +34,7 @@ def create_excel():
     excel_lib.create_workbook(path="./output/test.xlsx", fmt="xlsx")
 
     # Append an existing Table object
-    table = {
-        "name": ["Sara", "Beth", "Amy"],
-        "age":  [    48,     21,     57],
-        }
+    table = create_table() 
     
     excel_lib.append_rows_to_worksheet(table, header=True)
 
