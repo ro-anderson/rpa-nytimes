@@ -33,7 +33,7 @@ def create_excel():
     
     excel_lib.append_rows_to_worksheet(table, header=True)
 
-    excel_lib.save_workbook()
+    excel_lib.save_workbook("./output/test.xlsx")
     
 
 def open_the_website(url):
@@ -58,8 +58,6 @@ def main():
         search_for()
         store_screenshot("output/screenshot.png")
         create_excel()
-        wi.add_work_item_file("./output/test.xlsx")
-        wi.save_work_item()
     finally:
         browser_lib.close_all_browsers()
 
