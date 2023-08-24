@@ -2,7 +2,7 @@
     {
         "payload": {
             "search_phrase": "python",
-            "news_category": "Tech",
+            "news_category": "Books",
             "number_of_months": 2
         },
         "files": {}
