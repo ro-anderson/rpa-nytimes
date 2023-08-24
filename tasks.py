@@ -17,7 +17,7 @@ def get_work_item_data():
     print(input_wi['news_category'])
     print(input_wi['number_of_months'])
 
-    return input_wi["search_phrase"]
+    return input_wi["search_phrase"], input_wi["news_category"]
 
 def create_news_table():
     table = {
@@ -53,24 +53,63 @@ def create_excel():
 def open_the_website(url):
     browser_lib.open_available_browser(url)
 
+def close_modals():
+    # CSS selector for the cookie acceptance button
+    cookies_acceptance_selector = '//button[@data-testid="GDPR-accept"]'
+
+    # XPath selector for the terms update acceptance button
+    terms_update_acceptance_selector = '//button[@class="css-1fzhd9j" and text()="Continue"]'
+
+
+    # Wait for and click the terms update acceptance button (if it appears)
+    browser_lib.click_element_when_clickable(terms_update_acceptance_selector, timeout=10)
+
+    # Wait for and click the cookies acceptance button (if it appears)
+    browser_lib.click_element_when_clickable(cookies_acceptance_selector, timeout=10)
+
+def check_category(news_category):
+    # XPath to locate the checkbox based on the inner text of its corresponding label
+    checkbox_xpath = f'//label[contains(., "{news_category}")]/input[@type="checkbox"]'
+    
+    # Check if the checkbox is already checked using the new function
+    is_checked = browser_lib.is_element_attribute_equal_to(checkbox_xpath, "checked", "true")
+    
+    # If the checkbox is not already checked, click on it
+    if not is_checked:
+        browser_lib.click_element_when_clickable(checkbox_xpath)
 
 def search_for():
-    term = get_work_item_data()
-    input_field = "css:input"
-    browser_lib.input_text(input_field, term)
-    browser_lib.press_keys(input_field, "ENTER")
+    term, news_category = get_work_item_data()
 
+    # CSS selector for the search input based on its id //*[@id="app"]/div[2]/div[2]/header/section[1]/div[1]/div[2]/button
+    magnifier_buttom =  '//button[@data-testid="search-button"]'
+    search_input_selector = '//*[@id="search-input"]/form/div/input'
+    go_buttom = '//*[@id="search-input"]/form/button'
+    multiselect_button = '//button[@data-testid="search-multiselect-button"]'
 
-def store_screenshot(filename):
-    browser_lib.screenshot(filename=filename)
+    # Close any modals that appear
+    close_modals()
 
+    # Click on magnifier buttom
+    browser_lib.click_element_when_clickable(magnifier_buttom, timeout=10)
+
+    # Input the term into the search field using the browser_lib
+    browser_lib.input_text_when_element_is_visible(search_input_selector, term)
+
+    # Click on magnifier buttom
+    browser_lib.click_element_when_clickable(go_buttom, timeout=10)
+
+    # Click on magnifier buttom
+    browser_lib.click_element_when_clickable(multiselect_button, timeout=10)
+
+    # Check checkbox category
+    check_category(news_category)
 
 # Define a main() function that calls the other functions in order:
 def main():
     try:
-        open_the_website("https://robocorp.com/docs/")
+        open_the_website("https://www.nytimes.com/")
         search_for()
-        store_screenshot("output/screenshot.png")
         create_excel()
     finally:
         browser_lib.close_all_browsers()
