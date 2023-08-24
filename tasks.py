@@ -40,14 +40,14 @@ def create_excel():
 
 
     # Create modern format workbook with a path set.
-    excel_lib.create_workbook(path="./output/news.xlsx", fmt="xlsx")
+    excel_lib.create_workbook(path="./output/articles.xlsx", fmt="xlsx")
 
     # Append an existing Table object
     table = create_news_table()
     
     excel_lib.append_rows_to_worksheet(table, header=True)
 
-    excel_lib.save_workbook("./output/news.xlsx")
+    excel_lib.save_workbook("./output/articles.xlsx")
     
 
 def open_the_website(url):
