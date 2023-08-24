@@ -2,11 +2,40 @@ from RPA.Browser.Selenium import Selenium
 from RPA.Robocorp.WorkItems import WorkItems
 from RPA.Excel.Files import Files
 import re
+import datetime
 
 browser_lib = Selenium()
 excel_lib = Files()
 
 wi = WorkItems()
+
+def calculate_date_range(number_of_months):
+    # Check if number_of_months is an integer and greater than 0
+    if not isinstance(number_of_months, int) or number_of_months < 0:
+        raise ValueError("number_of_months must be an integer greater than 0.")
+
+    # Adust to M - 1
+    if number_of_months > 0:
+        number_of_months = number_of_months - 1 
+    
+    # Calculate the total number of months from 01/01/1851 to today
+    start_date_1851 = datetime.date(1851, 1, 1)
+    today = datetime.date.today()
+    delta = today - start_date_1851
+    total_months = (delta.days // 30)  # Approximate month as 30 days for simplicity
+    
+    # Set the upper limit for number_of_months
+    if number_of_months > total_months:
+        number_of_months = total_months
+
+    # Calculate the start date
+    end_date = today
+    year_change = (today.month - number_of_months) <= 0  # Check if we need to subtract a year
+    start_month = (today.month - number_of_months + 12) % 12 or 12  # Handle December separately
+    start_year = today.year - year_change
+    start_date = datetime.date(start_year, start_month, 1)
+    
+    return {"start_date": start_date.strftime('%m/%d/%Y'), "end_date": end_date.strftime('%m/%d/%Y')}
 
 def get_work_item_data():
 
@@ -17,7 +46,8 @@ def get_work_item_data():
     print(input_wi['news_categories'])
     print(input_wi['number_of_months'])
 
-    return input_wi["search_phrase"], input_wi["news_categories"]
+    return input_wi["search_phrase"], input_wi["news_categories"], input_wi["number_of_months"]
+
 
 def create_news_table():
     table = {
@@ -132,33 +162,58 @@ def check_category(news_category):
         browser_lib.click_element_when_clickable(checkbox_xpath)
 
 def search_for():
-    term, news_categories = get_work_item_data()
+    term, news_categories, number_of_months = get_work_item_data()
 
     # CSS selector for the search input based on its id
-    magnifier_buttom =  '//button[@data-testid="search-button"]'
+    magnifier_button =  '//button[@data-testid="search-button"]'
     search_input_selector = '//*[@id="search-input"]/form/div/input'
-    go_buttom = '//*[@id="search-input"]/form/button'
+    go_button = '//*[@id="search-input"]/form/button'
     multiselect_button = '//button[@data-testid="search-multiselect-button"]'
+    multiselect_date_range_button = '//*[@id="site-content"]/div/div[1]/div[2]/div/div/div[1]/div/div/button'
+    specific_dates_button = '//*[@id="site-content"]/div/div[1]/div[2]/div/div/div[1]/div/div/div/ul/li[6]/button'
+    start_date_input_button = '//input[@data-testid="DateRange-startDate" and @id="startDate"]'
+    end_date_input_button = '//input[@data-testid="DateRange-endDate" and @id="endDate"]'
+
 
     # Close any modals that appear
     close_modals()
 
-    # Click on magnifier buttom
-    browser_lib.click_element_when_clickable(magnifier_buttom, timeout=10)
+    # Click on magnifier button
+    browser_lib.click_element_when_clickable(magnifier_button, timeout=10)
 
     # Input the term into the search field using the browser_lib
     browser_lib.input_text_when_element_is_visible(search_input_selector, term)
 
-    # Click on magnifier buttom
-    browser_lib.click_element_when_clickable(go_buttom, timeout=10)
+    # Click on magnifier button
+    browser_lib.click_element_when_clickable(go_button, timeout=10)
 
-    # Click on magnifier buttom
+    # Filter by date
+    search_dates_range = calculate_date_range(number_of_months)
+
+    # Click on multiselect date range button button to Collapse
+    browser_lib.click_element_when_clickable(multiselect_date_range_button, timeout=10)
+
+    # Click on specific dates
+    browser_lib.click_element_when_clickable(specific_dates_button, timeout=10)
+
+    # Input the start_date 
+    browser_lib.input_text_when_element_is_visible(start_date_input_button, search_dates_range["start_date"])
+
+    # Input date the end_date 
+    browser_lib.input_text_when_element_is_visible(end_date_input_button, search_dates_range["end_date"])
+
+    # Click Enter
+    browser_lib.press_keys(end_date_input_button , "ENTER")
+
+    # get title
+    
+    # Click on magnifier button
     browser_lib.click_element_when_clickable(multiselect_button, timeout=10)
 
     # Check checkbox category
     check_categories(news_categories)
 
-    # Click on magnifier buttom to Collapse
+    # Click on magnifier button to Collapse
     browser_lib.click_element_when_clickable(multiselect_button, timeout=10)
 
 # Define a main() function that calls the other functions in order:
