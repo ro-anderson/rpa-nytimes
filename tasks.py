@@ -152,7 +152,7 @@ def search_for():
     # Click on magnifier buttom
     browser_lib.click_element_when_clickable(go_buttom, timeout=10)
 
-    # Click on magnifier buttom to Collapse
+    # Click on magnifier buttom
     browser_lib.click_element_when_clickable(multiselect_button, timeout=10)
 
     # Check checkbox category
