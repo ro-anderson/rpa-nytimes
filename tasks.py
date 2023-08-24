@@ -1,6 +1,7 @@
 from RPA.Browser.Selenium import Selenium
 from RPA.Robocorp.WorkItems import WorkItems
 from RPA.Excel.Files import Files
+import re
 
 browser_lib = Selenium()
 excel_lib = Files()
@@ -10,14 +11,13 @@ wi = WorkItems()
 def get_work_item_data():
 
     # Load the current work item
-    #wi = WorkItems()
     wi.get_input_work_item() 
     input_wi = wi.get_work_item_variables() 
     print(input_wi['search_phrase']) 
-    print(input_wi['news_category'])
+    print(input_wi['news_categories'])
     print(input_wi['number_of_months'])
 
-    return input_wi["search_phrase"], input_wi["news_category"]
+    return input_wi["search_phrase"], input_wi["news_categories"]
 
 def create_news_table():
     table = {
@@ -67,11 +67,64 @@ def close_modals():
     # Wait for and click the cookies acceptance button (if it appears)
     browser_lib.click_element_when_clickable(cookies_acceptance_selector, timeout=10)
 
+def get_available_categories():
+    """Extracts all available categories from the dropdown list and removes numbers from the names."""
+    xpath_categories = '//ul[@data-testid="multi-select-dropdown-list"]/li/label/span'
+    categories = [element.text for element in browser_lib.get_webelements(xpath_categories)]
+    
+    # Remove numbers from each category name
+    cleaned_categories = [re.sub(r'\d+', '', category) for category in categories]
+    
+    return cleaned_categories
+
+def get_available_categories():
+    """Extracts all available categories from the dropdown list."""
+    xpath_categories = '//ul[@data-testid="multi-select-dropdown-list"]/li/label/span'
+    categories = [element.text for element in browser_lib.get_webelements(xpath_categories)]
+
+    # Remove numbers from each category name
+    cleaned_categories = [re.sub(r'\d+', '', category) for category in categories]
+    
+    return cleaned_categories
+
+def get_valid_categories(news_categories):
+    """Checks if the provided categories are part of the available categories."""
+    available_categories = get_available_categories()
+    
+    # Return only those categories from news_categories that exist in the available_categories
+    valid_categories = [category for category in news_categories if category in available_categories]
+    
+    # Save output workitem - versioning valid categories
+    wi.create_output_work_item({"valid_categories":valid_categories}, save=True)
+
+    return valid_categories
+
+def check_categories(news_categories):
+    # Step 0: Filter out categories that are not present on the webpage
+    valid_categories = get_valid_categories(news_categories)    
+
+    # If the resulting list is empty, only select 'Any'
+    if not valid_categories:
+        check_category("Any")
+        return
+
+    #elif contains 'Any', only select 'Any'
+    elif "Any" in valid_categories:
+        check_category("Any")
+        return
+
+    else:
+
+        # Check and select each valid category in the list
+        for category in valid_categories:
+            check_category(category)
+        return
+
 def check_category(news_category):
     # XPath to locate the checkbox based on the inner text of its corresponding label
     checkbox_xpath = f'//label[contains(., "{news_category}")]/input[@type="checkbox"]'
     
-    # Check if the checkbox is already checked using the new function
+    # Check if the checkbox is already checked
     is_checked = browser_lib.is_element_attribute_equal_to(checkbox_xpath, "checked", "true")
     
     # If the checkbox is not already checked, click on it
@@ -79,9 +132,9 @@ def check_category(news_category):
         browser_lib.click_element_when_clickable(checkbox_xpath)
 
 def search_for():
-    term, news_category = get_work_item_data()
+    term, news_categories = get_work_item_data()
 
-    # CSS selector for the search input based on its id //*[@id="app"]/div[2]/div[2]/header/section[1]/div[1]/div[2]/button
+    # CSS selector for the search input based on its id
     magnifier_buttom =  '//button[@data-testid="search-button"]'
     search_input_selector = '//*[@id="search-input"]/form/div/input'
     go_buttom = '//*[@id="search-input"]/form/button'
@@ -99,11 +152,14 @@ def search_for():
     # Click on magnifier buttom
     browser_lib.click_element_when_clickable(go_buttom, timeout=10)
 
-    # Click on magnifier buttom
+    # Click on magnifier buttom to Collapse
     browser_lib.click_element_when_clickable(multiselect_button, timeout=10)
 
     # Check checkbox category
-    check_category(news_category)
+    check_categories(news_categories)
+
+    # Click on magnifier buttom to Collapse
+    browser_lib.click_element_when_clickable(multiselect_button, timeout=10)
 
 # Define a main() function that calls the other functions in order:
 def main():
