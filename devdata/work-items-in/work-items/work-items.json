@@ -1,10 +1,12 @@
 [
-  {
-      "payload": {
-        "search_phrase": "python",
-        "news_category": "Tech",
-        "number_of_months": 2 
-      },
-      "files": {}
-  }
+    {
+        "payload": {
+            "search_phrase": "python",
+            "news_category": "Tech",
+            "number_of_months": 2
+        },
+        "files": {
+            "test.xlsx": "test.xlsx"
+        }
+    }
 ]

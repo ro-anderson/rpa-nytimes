@@ -5,10 +5,12 @@ from RPA.Excel.Files import Files
 browser_lib = Selenium()
 excel_lib = Files()
 
+wi = WorkItems()
+
 def get_work_item_data():
 
     # Load the current work item
-    wi = WorkItems()
+    #wi = WorkItems()
     wi.get_input_work_item() 
     input_wi = wi.get_work_item_variables() 
     print(input_wi['search_phrase']) 
@@ -56,6 +58,8 @@ def main():
         search_for()
         store_screenshot("output/screenshot.png")
         create_excel()
+        wi.add_work_item_file("./output/test.xlsx")
+        wi.save_work_item()
     finally:
         browser_lib.close_all_browsers()
 
