@@ -1,9 +1,9 @@
 [
     {
         "payload": {
-            "search_phrase": "python",
-            "news_categories": ["Books","Business"],
-            "number_of_months": 2
+            "search_phrase": "arroz",
+            "news_categories": ["Magazine"],
+            "number_of_months": 360
         },
         "files": {}
     }
