@@ -198,6 +198,20 @@ def text_to_formatted_date(date_text: str) -> str:
     if re.match(r'^[A-Za-z]+\s+\d+$', date_text_cleaned):
         date_text_cleaned = f"{date_text_cleaned}, {datetime.datetime.now().year}"
     
+    # Handle "Xh ago" format
+    hours_ago_match = re.match(r'(\d+)h ago', date_text)
+    if hours_ago_match:
+        hours = int(hours_ago_match.group(1))
+        date_obj = datetime.datetime.now() - datetime.timedelta(hours=hours)
+        return date_obj.strftime('%m/%d/%Y')
+    
+    # Handle "Xm ago" format
+    minutes_ago_match = re.match(r'(\d+)m ago', date_text)
+    if minutes_ago_match:
+        minutes = int(minutes_ago_match.group(1))
+        date_obj = datetime.datetime.now() - datetime.timedelta(minutes=minutes)
+        return date_obj.strftime('%m/%d/%Y')
+    
     try:
         # Try to parse the date using the full month name format
         date_obj = datetime.datetime.strptime(date_text_cleaned, '%B %d, %Y')
@@ -434,6 +448,7 @@ def search_for():
 
         # download image by the url
         directory_path = './output'
+        print(f"\nDownloading image with: date:{date}\ntitle:{title}\n")
         picture_filename = download_image_with_uuid(image_url, directory_path)
 
         # Storing data in a dictionary and appending to the list

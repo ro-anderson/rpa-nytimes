@@ -1,9 +1,9 @@
 [
     {
         "payload": {
-            "search_phrase": "arroz",
-            "news_categories": ["Magazine"],
-            "number_of_months": 360
+            "search_phrase": "brazil",
+            "news_categories": ["Any"],
+            "number_of_months": 1
         },
         "files": {}
     }
