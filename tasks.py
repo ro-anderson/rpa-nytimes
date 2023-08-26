@@ -181,7 +181,7 @@ def text_to_formatted_date(date_text: str) -> str:
         "Feb.": "February",
         "Mar.": "March",
         "Apr.": "April",
-        "May": "May",    # Even though "May" is standard, including it for completeness
+        "May": "May",
         "June": "June",
         "July": "July",
         "Aug.": "August",
@@ -191,8 +191,12 @@ def text_to_formatted_date(date_text: str) -> str:
         "Dec.": "December"
     }
     
-    # Replace non-standard month abbreviations with standard ones using dictionary comprehension
+    # Replace non-standard month abbreviations with standard ones
     date_text_cleaned = ' '.join([month_abbr_mapping.get(word, word) for word in date_text.split()])
+    
+    # If the date is in the format "Month Day", append the current year
+    if re.match(r'^[A-Za-z]+\s+\d+$', date_text_cleaned):
+        date_text_cleaned = f"{date_text_cleaned}, {datetime.datetime.now().year}"
     
     try:
         # Try to parse the date using the full month name format
