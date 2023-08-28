@@ -29,9 +29,6 @@ class NYTBasePage:
 
         self.browser.open_available_browser(url)
 
-    # Add other common methods here if needed
-
-# Implementation of the HomePage class's search method based on tasks.py
 class HomePage(NYTBasePage):
     """Represents the main page of the New York Times."""
 
@@ -39,31 +36,10 @@ class HomePage(NYTBasePage):
         super().__init__(browser)
         self.url = "https://www.nytimes.com/"
 
-    def search(self, search_term):
-        """
-        Search for a term on the NYT homepage.
-        
-        Args:
-        - search_term (str): The term or phrase to search for.
-        
-        Returns:
-        - None
-        """
-        # Placeholder for the actual search logic from tasks.py
-        pass
-    # Additional methods related to HomePage functionalities can be added here
-
-    # Note: The actual implementations of the methods have been omitted and can be filled in using the code from tasks.py.
-
-
-# Now, let's define the SearchResultsPage class
-# Refining the SearchResultsPage class to include XPath selectors as class attributes
-
 class SearchResultsPage(NYTBasePage):
     """Represents the search results page on the New York Times."""
 
     def __init__(self, browser):
-    #def __init__(self, browser, workitem, term, news_categories, number_of_months):
         super().__init__(browser)
 
         self.wi = WorkItems()
@@ -501,12 +477,6 @@ class SearchResultsPage(NYTBasePage):
         filtred_articles = self.filter_articles_by_search_dates_range(articles_data)
 
         self.create_excel(filtred_articles)
-
-    # Additional methods related to SearchResultsPage functionalities can be added here
-
-
-
-# The class structure is now correctly defined.
 
 if __name__ == '__main__':
 
