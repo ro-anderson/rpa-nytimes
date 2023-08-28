@@ -69,8 +69,10 @@ class SearchResultsPage(NYTBasePage):
         self.term = term
         self.news_categories = news_categories
         self.number_of_months = number_of_months
-        self.wi.get_input_work_item() 
-    
+        self.wi.get_input_work_item()
+        self.excel_file = Files()
+        self.search_dates_range = self.calculate_search_dates_range()
+
     # XPath selectors
     magnifier_button =  '//button[@data-testid="search-button"]'
     search_input_selector = '//*[@id="search-input"]/form/div/input'
@@ -86,6 +88,205 @@ class SearchResultsPage(NYTBasePage):
     cookies_acceptance_selector = '//button[@data-testid="GDPR-accept"]'
     # XPath selector for the terms update acceptance button
     terms_update_acceptance_selector = '//button[@class="css-1fzhd9j" and text()="Continue"]'    
+    root_div_elements_css = "css:.css-1l4w6pd"
+    date_locator = "17ubb9w"
+    title_locator = "2fgx4k"
+    description_locator = "16nhkrn"
+    image_locator = "rq4mmj"
+    directory_output_path = './output'
+
+    def transform_article_data(self, list_articles: list) -> dict:
+        """
+        Transforms a list of article data dictionaries into a dictionary of lists using dictionary comprehension.
+        
+        Args:
+        - list_articles (list): List of dictionaries, where each dictionary contains data for a single article.
+        
+        Returns:
+        - dict: A dictionary where each key corresponds to a field (e.g., title, date) and each value is a list of all values for that field across all articles.
+        """
+        
+        keys = ["title", "date", "description", "picture_filename", "contains_money_format_on_title_or_description", "count_search_phrases"]
+        
+        return {key: [article[key] for article in list_articles] for key in keys}
+
+    def filter_articles_by_search_dates_range(self, articles):
+        """
+        Filters articles based on a given date range.
+        
+        Args:
+        - articles (list): List of article dictionaries.
+        - search_dates_range (dict): Dictionary with 'start_date' and 'end_date' keys.
+        
+        Returns:
+        - list: Filtered list of articles.
+        """
+        
+        # Convert the start_date and end_date strings to datetime objects
+        start_date = datetime.datetime.strptime(self.search_dates_range['start_date'], '%m/%d/%Y')
+        end_date = datetime.datetime.strptime(self.search_dates_range['end_date'], '%m/%d/%Y')
+        
+        # Filter the articles based on the date range
+        filtered_articles = [
+            article for article in articles
+            if start_date <= datetime.datetime.strptime(self.text_to_formatted_date(article['date']), '%m/%d/%Y') <= end_date
+        ]
+        
+        return filtered_articles
+
+    def create_excel(self, list_articles):
+
+
+        # Create modern format workbook with a path set.
+        self.excel_file.create_workbook(path="./output/articles.xlsx", fmt="xlsx")
+
+        # Append an existing Table object
+        table = self.transform_article_data(list_articles)
+        
+        self.excel_file.append_rows_to_worksheet(table, header=True)
+
+        self.excel_file.save_workbook("./output/articles.xlsx")
+
+    def count_search_phrases(self, title: str, description: str, term: str) -> int:
+        """
+        Counts the occurrences of the search phrase (term) in the title and description.
+        
+        Args:
+        - title (str): The article title.
+        - description (str): The article description.
+        - term (str): The search phrase.
+        
+        Returns:
+        - int: The total count of the search phrase in the title and description.
+        """
+        
+        # Counting occurrences of term in both title and description
+        count_in_title = title.lower().count(term.lower())
+        count_in_description = description.lower().count(term.lower())
+        
+        return count_in_title + count_in_description
+
+    def contains_money_format_on_title_or_description(self, title: str, description: str) -> bool:
+        """
+        Checks if the title or description contains any specified money format.
+        
+        Args:
+        - title (str): The article title.
+        - description (str): The article description.
+        
+        Returns:
+        - bool: True if any money format is found, False otherwise.
+        """
+        
+        # Define a regex pattern to match the specified money formats
+        money_pattern = r"(\$[\d,]+(\.\d{1,2})?)|(\d+\s(dollars|USD))"
+        
+        # Search the pattern in the title and description
+        if re.search(money_pattern, title) or re.search(money_pattern, description):
+            return True
+        return False
+
+    def download_image_with_uuid(self, image_url: str, directory_path: str) -> str:
+        """
+        Download the image from the given URL and save it with a UUID-based filename.
+        
+        Args:
+        - image_url (str): The URL of the image to be downloaded.
+        - directory_path (str): The directory where the image will be saved.
+        
+        Returns:
+        - str: The path of the downloaded image.
+        """ 
+
+        # Generate a unique filename using UUID
+        filename = str(uuid.uuid4()) + ".jpg"
+        filepath = os.path.join(directory_path, filename)
+
+        # Download the image
+        if image_url:
+            urllib.request.urlretrieve(image_url, filepath)
+        else:
+            return ''
+
+        return filename
+
+    def safe_get_image_url(self, locator, parent=None):
+        try:
+            image_element = self.browser.find_element(locator, parent=parent)
+            return self.browser.get_element_attribute(image_element, "src")
+        except:
+            return ''
+
+    def safe_get_text(self, locator, parent=None):
+        try:
+            return self.browser.find_element(locator, parent=parent).text
+        except:
+            return ''
+
+    def is_date_in_range(self, date):
+        """
+        Checks if a given date is within the specified date range.
+        
+        Args:
+        - date (str): The date string in the format 'MM/DD/YYYY'.
+        - search_dates_range (dict): Dictionary with 'start_date' and 'end_date' keys.
+        
+        Returns:
+        - bool: True if the date is within the range, False otherwise.
+        """
+        start_date = datetime.datetime.strptime(self.search_dates_range['start_date'], '%m/%d/%Y')
+        end_date = datetime.datetime.strptime(self.search_dates_range['end_date'], '%m/%d/%Y')
+        current_date = datetime.datetime.strptime(date, '%m/%d/%Y')
+        
+        return start_date <= current_date <= end_date
+
+    def text_to_formatted_date(self, date_text: str) -> str:
+        # Dictionary for mapping non-standard month abbreviations
+        month_abbr_mapping = {
+            "Jan.": "January",
+            "Feb.": "February",
+            "Mar.": "March",
+            "Apr.": "April",
+            "May": "May",
+            "June": "June",
+            "July": "July",
+            "Aug.": "August",
+            "Sept.": "September",
+            "Oct.": "October",
+            "Nov.": "November",
+            "Dec.": "December"
+        }
+        
+        # Replace non-standard month abbreviations with standard ones
+        date_text_cleaned = ' '.join([month_abbr_mapping.get(word, word) for word in date_text.split()])
+        
+        # If the date is in the format "Month Day", append the current year
+        if re.match(r'^[A-Za-z]+\s+\d+$', date_text_cleaned):
+            date_text_cleaned = f"{date_text_cleaned}, {datetime.datetime.now().year}"
+        
+        # Handle "Xh ago" format
+        hours_ago_match = re.match(r'(\d+)h ago', date_text)
+        if hours_ago_match:
+            hours = int(hours_ago_match.group(1))
+            date_obj = datetime.datetime.now() - datetime.timedelta(hours=hours)
+            return date_obj.strftime('%m/%d/%Y')
+        
+        # Handle "Xm ago" format
+        minutes_ago_match = re.match(r'(\d+)m ago', date_text)
+        if minutes_ago_match:
+            minutes = int(minutes_ago_match.group(1))
+            date_obj = datetime.datetime.now() - datetime.timedelta(minutes=minutes)
+            return date_obj.strftime('%m/%d/%Y')
+        
+        try:
+            # Try to parse the date using the full month name format
+            date_obj = datetime.datetime.strptime(date_text_cleaned, '%B %d, %Y')
+            
+            # Convert the datetime object to a formatted string "MM-DD-YYYY"
+            formatted_date = date_obj.strftime('%m/%d/%Y')
+            return formatted_date
+        except:
+            return date_text  # Return original date_text if there's an error
 
     def get_available_categories(self):
         """Extracts all available categories from the dropdown list."""
@@ -169,13 +370,31 @@ class SearchResultsPage(NYTBasePage):
         
         return {"start_date": start_date.strftime('%m/%d/%Y'), "end_date": end_date.strftime('%m/%d/%Y')}
 
+    def close_modals_updated(self):
+        """Close modals that might appear during page interactions."""
+        try:
+            # Wait for and click the terms update acceptance button (if it appears)
+            self.browser.click_element_when_clickable(self.terms_update_acceptance_selector, timeout=15)
+
+        except Exception as e:  # Catch all exceptions to be safe, but you can specify the exact exception type if desired
+            # If the modal doesn't appear within the timeout, just log a message and continue
+            print(f"Modal did not appear or could not be closed: {e}")
+
     def close_modals(self):
+        """Close modals that might appear during page interactions."""
+        try:
+            # Wait for and click the terms update acceptance button (if it appears)
+            self.browser.click_element_when_clickable(self.terms_update_acceptance_selector, timeout=15)
+        except Exception as e:
+            # If the modal doesn't appear within the timeout, just log a message and continue
+            print(f"Terms update acceptance modal did not appear or could not be closed: {e}")
 
-        # Wait for and click the terms update acceptance button (if it appears)
-        self.browser.click_element_when_clickable(self.terms_update_acceptance_selector, timeout=10)
-
-        # Wait for and click the cookies acceptance button (if it appears)
-        self.browser.click_element_when_clickable(self.cookies_acceptance_selector, timeout=10)
+        try:
+            # Wait for and click the cookies acceptance button (if it appears)
+            self.browser.click_element_when_clickable(self.cookies_acceptance_selector, timeout=10)
+        except Exception as e:
+            # If the modal doesn't appear within the timeout, just log a message and continue
+            print(f"Cookies acceptance modal did not appear or could not be closed: {e}")
 
     def apply_filters(self):
         """
@@ -198,9 +417,6 @@ class SearchResultsPage(NYTBasePage):
         # Click on magnifier button
         self.browser.click_element_when_clickable(self.go_button, timeout=10)
 
-        # Filter by date
-        search_dates_range = self.calculate_search_dates_range()
-
         # Click on multiselect date range button button to Collapse
         self.browser.click_element_when_clickable(self.multiselect_date_range_button, timeout=10)
 
@@ -208,10 +424,10 @@ class SearchResultsPage(NYTBasePage):
         self.browser.click_element_when_clickable(self.specific_dates_button, timeout=10)
 
         # Input the start_date 
-        self.browser.input_text_when_element_is_visible(self.start_date_input_button, search_dates_range["start_date"])
+        self.browser.input_text_when_element_is_visible(self.start_date_input_button, self.search_dates_range["start_date"])
 
         # Input date the end_date 
-        self.browser.input_text_when_element_is_visible(self.end_date_input_button, search_dates_range["end_date"])
+        self.browser.input_text_when_element_is_visible(self.end_date_input_button, self.search_dates_range["end_date"])
 
         # Click Enter
         self.browser.press_keys(self.end_date_input_button , "ENTER")
@@ -235,7 +451,53 @@ class SearchResultsPage(NYTBasePage):
         - list: A list of dictionaries containing article details.
         """
         # Placeholder for the actual article extraction logic from tasks.py
-        pass
+        while True:
+            try:
+                # Wait until the "SHOW MORE" button is clickable and click on it
+                self.browser.click_element_when_clickable(show_more_button, timeout=2)
+
+            except:
+                # If the "SHOW MORE" button is not found or not clickable within the timeout period, break out of the loop
+                break
+
+        # get data
+        articles_data = []
+
+        # Locate all root div elements for articles based on a structure commonality.
+        article_divs = self.browser.find_elements(self.root_div_elements_css)
+
+        for div in article_divs:
+
+            # Use the helper function
+            date = self.text_to_formatted_date(self.safe_get_text(f"css:.css-{self.date_locator}", parent=div))
+
+            # If date is out of the range, skip the current iteration
+            if not self.is_date_in_range(date):
+                continue
+
+            title = self.safe_get_text(f"css:.css-{self.title_locator}", parent=div)
+            description = self.safe_get_text(f"css:.css-{self.description_locator}", parent=div)
+            image_url = self.safe_get_image_url(f"css:.css-{self.image_locator}", parent=div)
+
+            # download image by the url
+            print(f"\nDownloading image with: date:{date}\ntitle:{title}\n")
+            picture_filename = self.download_image_with_uuid(image_url, self.directory_output_path)
+
+            # Storing data in a dictionary and appending to the list
+            article_data = {
+                "date": date,
+                "title": title,
+                "description": description,
+                "picture_filename": picture_filename,
+                "contains_money_format_on_title_or_description": self.contains_money_format_on_title_or_description(title, description),
+                "count_search_phrases": self.count_search_phrases(title, description, term)
+            }
+            articles_data.append(article_data)
+
+        # As the datetime filter of nytimes is not working as expected, we need to filter the articles for the data range that we want
+        filtred_articles = self.filter_articles_by_search_dates_range(articles_data)
+
+        self.create_excel(filtred_articles)
 
     # Additional methods related to SearchResultsPage functionalities can be added here
 
@@ -267,9 +529,5 @@ if __name__ == '__main__':
     home_page.open_the_website(home_page.url)
     search_results_page = SearchResultsPage(browser, workitem, term, news_categories, number_of_months)
     search_results_page.apply_filters()
-    # search_results = SearchResultsPage(browser)
-    # search_results.apply_filters()
-    # search_results.extract_articles()
-
-    # Note: The actual function implementations have been omitted and can be filled in as needed.
+    search_results_page.extract_articles()
 
