@@ -62,14 +62,16 @@ class HomePage(NYTBasePage):
 class SearchResultsPage(NYTBasePage):
     """Represents the search results page on the New York Times."""
 
-    def __init__(self, browser, workitem, term, news_categories, number_of_months):
+    def __init__(self, browser):
+    #def __init__(self, browser, workitem, term, news_categories, number_of_months):
         super().__init__(browser)
 
-        self.wi = workitem
-        self.term = term
-        self.news_categories = news_categories
-        self.number_of_months = number_of_months
+        self.wi = WorkItems()
         self.wi.get_input_work_item()
+        self.input_wi = self.wi.get_work_item_variables() 
+        self.search_phrase = self.input_wi["search_phrase"]
+        self.news_categories = self.input_wi["news_categories"]
+        self.number_of_months = self.input_wi["number_of_months"]
         self.excel_file = Files()
         self.search_dates_range = self.calculate_search_dates_range()
 
@@ -94,6 +96,7 @@ class SearchResultsPage(NYTBasePage):
     description_locator = "16nhkrn"
     image_locator = "rq4mmj"
     directory_output_path = './output'
+    
 
     def transform_article_data(self, list_articles: list) -> dict:
         """
@@ -412,7 +415,7 @@ class SearchResultsPage(NYTBasePage):
         self.browser.click_element_when_clickable(self.magnifier_button, timeout=10)
 
         # Input the term into the search field using the browser
-        self.browser.input_text_when_element_is_visible(self.search_input_selector, self.term)
+        self.browser.input_text_when_element_is_visible(self.search_input_selector, self.search_phrase)
 
         # Click on magnifier button
         self.browser.click_element_when_clickable(self.go_button, timeout=10)
@@ -507,27 +510,11 @@ class SearchResultsPage(NYTBasePage):
 
 if __name__ == '__main__':
 
-
-    def get_work_item_data():
-
-        # Load the current work item
-        wi = WorkItems()
-        wi.get_input_work_item() 
-        input_wi = wi.get_work_item_variables() 
-        print(input_wi['search_phrase']) 
-        print(input_wi['news_categories'])
-        print(input_wi['number_of_months'])
-
-        return input_wi["search_phrase"], input_wi["news_categories"], input_wi["number_of_months"]
-
-    term, news_categories, number_of_months = get_work_item_data()
-
     # Sample usage:
     browser = Selenium()
-    workitem = WorkItems()
     home_page = HomePage(browser)
     home_page.open_the_website(home_page.url)
-    search_results_page = SearchResultsPage(browser, workitem, term, news_categories, number_of_months)
+    search_results_page = SearchResultsPage(browser)
     search_results_page.apply_filters()
     search_results_page.extract_articles()
 
