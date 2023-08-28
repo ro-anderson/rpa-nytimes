@@ -1,22 +1,76 @@
-# Template: Python - Minimal
+# New York Times Article Extractor 🤖 📰
+This project automates the process of fetching articles from the New York Times website based on a search term, specific categories, and a date range. The data extracted includes the title, date, description, an associated image, and more. The results are then saved to an Excel file.
 
-This template leverages the new Python open-source structure [robo](https://github.com/robocorp/robo), the [libraries](https://github.com/robocorp/robo#libraries) from to same project as well.
-The full power of [rpaframework](https://github.com/robocorp/rpaframework) is also available for you on Python as a backup while we implement new Python libraries.
+## Features
 
-The template provides you with the basic structure of a Python project: logging out of the box and controlling your tasks without fiddling with the base Python stuff. The environment contains the most used libraries, so you do not have to start thinking about those right away. 
+- **Article Extraction**: Extract articles' title, date, description, and associated image.
+- **Date Range Filtering**: Filter articles based on a specified number of months.
+- **Money Format Detection**: Detect mentions of money in specified formats within articles.
+- **Search Phrase Count**: Count the number of times the search phrase appears in the articles.
+- **Excel Export**: Export the extracted data to an Excel file.
 
-👉 After running the bot, check out the `log.html` under the `output` -folder.
+## Requirements
 
-The template here is essentially empty, leaving you with a canvas to paint on.
+- Python 3.7+
+- Robocorp VSCode extension (for local development)
+- Robocorp Workstation (for production deployment)
 
-Do note that with Robocorp tooling you:
-- Do NOT need Python installed
-- Should NOT be writing `pip install..`; the [conda.yaml](https://github.com/robocorp/template-python/blob/master/conda.yaml) is here for a reason.
-- You do not need to worry about Python's main -functions and, most importantly, the logging setup
+## Setup
 
-🚀 Now, go get'em
+1. **Local Development**:
+    - Install [Robocorp's VSCode extension](https://robocorp.com/docs/development-guide/visual-studio-code-extension).
+    - Clone this repository.
+    - Open the project folder in VSCode.
+    - Use the Robocorp VSCode extension to run and debug the automation.
 
-For more information, do not forget to check out the following:
-* [Robocorp Documentation -site](https://robocorp.com/docs)
-* [Portal for more examples](https://robocorp.com/portal)
-* [robo repo](https://github.com/robocorp/robo) as this will developed a lot...
+2. **Production Deployment**:
+    - Upload the project to Robocorp Workstation.
+    - Use Robocorp Workstation's interface to start the automation.
+
+## Usage
+
+1. **Local Development**:
+    - Open the `tasks.py` file in VSCode.
+    - Use the Robocorp VSCode extension's play button to start the automation.
+
+2. **Production Deployment**:
+    - Navigate to the uploaded project within Robocorp Workstation.
+    - Start the automation.
+
+Sure! I'll update the "Important Notes" section to reflect the information you provided regarding setting variables through the `work-items.json` file.
+
+---
+
+## Important Notes
+
+Ensure that the `search_phrase`, `news_categories`, and `number_of_months` are properly set for the automation. These variables can be adjusted in the `work-items.json` file located at:
+
+```
+devdata
+├── work-items-in
+│   └── work-items
+│       └── work-items.json
+```
+
+The format of the `work-items.json` file should be:
+
+```json
+[
+    {
+        "payload": {
+            "search_phrase": "YOUR_SEARCH_TERM",
+            "news_categories": ["YOUR_CATEGORIES"],
+            "number_of_months": YOUR_NUMBER_OF_MONTHS
+        },
+        "files": {}
+    }
+]
+
+```
+Replace `YOUR_SEARCH_TERM`, `YOUR_CATEGORIES`, and `YOUR_NUMBER_OF_MONTHS` with the desired values for your automation.
+
+- `YOUR_SEARCH_TERM`: A string representing the term you want to search for. It can be any valid string or an empty string (`''`).
+  
+- `YOUR_CATEGORIES`: A list of categories that exist for the search term on the NYTimes search page. For example: `["Any", "Arts", "Briefing", "Business", "Magazine"]`. It can also be an empty list (`[]`).
+
+- `YOUR_NUMBER_OF_MONTHS`: A positive integer representing the number of months for which you want to fetch articles. 
