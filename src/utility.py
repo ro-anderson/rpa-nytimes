@@ -4,6 +4,7 @@ import urllib
 from dateutil.relativedelta import relativedelta
 import datetime
 import re
+import functools
 
 class Utility:
     """
@@ -219,3 +220,17 @@ class Utility:
         count_in_description = description.lower().count(term.lower())
         
         return count_in_title + count_in_description 
+
+class ErrorHandler:
+    @staticmethod
+    def handle_errors(error_message):
+        def decorator(func):
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    # Here we're printing the error, but you can adapt this to log the error or take other actions.
+                    print(f"{error_message} Original error: {str(e)}")
+            return wrapper
+        return decorator

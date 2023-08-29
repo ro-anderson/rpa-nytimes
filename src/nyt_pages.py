@@ -3,7 +3,7 @@ import re
 import datetime
 from time import sleep
 import logging
-from src.utility import Utility
+from src.utility import Utility, ErrorHandler
 from src.excel_handler import ExcelHandler
 import json
 
@@ -14,6 +14,7 @@ class NYTBasePage:
     def __init__(self, browser):
         self.browser = browser
 
+    @ErrorHandler.handle_errors("Error when opening the website.")
     def open_the_website(self, url):
         """
         Open the specified website URL in the browser.
