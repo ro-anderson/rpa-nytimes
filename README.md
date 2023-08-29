@@ -9,6 +9,14 @@ This project automates the process of fetching articles from the New York Times 
 - **Search Phrase Count**: Count the number of times the search phrase appears in the articles.
 - **Excel Export**: Export the extracted data to an Excel file.
 
+### Disclaimer
+As of the current date [```08/29/2023```], the date range search functionality on The New York Times website is not working as expected. When utilizing the filter for specific dates, all articles remain visible even after applying the filter. An example of this behavior can be observed at the following link:
+- https://www.nytimes.com/search?dropmab=false&endDate=2000-12-31&query=brazil&startDate=1998-12-31 
+  - try to filter a specific date range but returns the newest news related to the search phrase.
+
+To address this issue, we have implemented methods in our automation to manually filter the articles based on the desired date range. However, it's worth noting that this solution is not as performant as if the native filtering on the site was functioning correctly.
+
+
 ## Requirements
 
 - Python 3.7+
