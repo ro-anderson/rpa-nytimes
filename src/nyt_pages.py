@@ -10,33 +10,35 @@ import json
 # Page Object Pattern Implementation
 # Redefining the NYTBasePage class for context
 class NYTBasePage:
-    """Base class representing common functionalities for all NYT pages."""
+    '''Base class representing common functionalities for all NYT pages.'''
     def __init__(self, browser):
         self.browser = browser
 
     @ErrorHandler.handle_errors("Error when opening the website.")
     def open_the_website(self, url):
-        """
-        Open the specified website URL in the browser.
+        '''Open the specified website URL in the browser.
         
         Args:
-        - url (str): The website URL to open.
-        
-        Returns:
-        - None
-        """
+        - url (): Description needed.
+            
+            Args:
+            - url (str): The website URL to open.
+            
+            Returns:
+            - None
+            '''
 
         self.browser.open_available_browser(url)
 
 class HomePage(NYTBasePage):
-    """Represents the main page of the New York Times."""
+    '''Represents the main page of the New York Times.'''
 
     def __init__(self, browser):
         super().__init__(browser)
         self.url = "https://www.nytimes.com/"
 
 class SearchResultsPage(NYTBasePage):
-    """Represents the search results page on the New York Times."""
+    '''Represents the search results page on the New York Times.'''
     def __init__(self, browser):
         super().__init__(browser)
         self.utils = Utility(browser)
@@ -75,21 +77,28 @@ class SearchResultsPage(NYTBasePage):
         self.directory_output_path = self.config["output_directory"]
 
     def load_config(self, filename="config.json"):
+        '''load_config function.
+        
+        Args:
+        - filename (): Description needed.
+        '''
         with open(filename, 'r') as file:
             config = json.load(file)
         return config
 
     def filter_articles_by_search_dates_range(self, articles):
-        """
-        Filters articles based on a given date range.
+        '''Filters articles based on a given date range.
         
         Args:
-        - articles (list): List of article dictionaries.
-        - search_dates_range (dict): Dictionary with 'start_date' and 'end_date' keys.
-        
-        Returns:
-        - list: Filtered list of articles.
-        """
+        - articles (): Description needed.
+            
+            Args:
+            - articles (list): List of article dictionaries.
+            - search_dates_range (dict): Dictionary with 'start_date' and 'end_date' keys.
+            
+            Returns:
+            - list: Filtered list of articles.
+            '''
         
         # Convert the start_date and end_date strings to datetime objects
         start_date = datetime.datetime.strptime(self.search_dates_range['start_date'], '%m/%d/%Y')
@@ -104,17 +113,21 @@ class SearchResultsPage(NYTBasePage):
         return filtered_articles
 
     def count_search_phrases(self, title: str, description: str, term: str) -> int:
-        """
-        Counts the occurrences of the search phrase (term) in the title and description.
+        '''Counts the occurrences of the search phrase (term) in the title and description.
         
         Args:
-        - title (str): The article title.
-        - description (str): The article description.
-        - term (str): The search phrase.
+        - title (): Description needed.
+        - description (): Description needed.
+        - term (): Description needed.
+            
+            Args:
+            - title (str): The article title.
+            - description (str): The article description.
+            - term (str): The search phrase.
         
-        Returns:
-        - int: The total count of the search phrase in the title and description.
-        """
+            Returns:
+            - int: The total count of the search phrase in the title and description.
+            '''
         
         # Counting occurrences of term in both title and description
         count_in_title = title.lower().count(term.lower())
@@ -123,8 +136,16 @@ class SearchResultsPage(NYTBasePage):
         return count_in_title + count_in_description
 
     def get_available_categories(self):
-        """Extracts all available categories from the dropdown list."""
-        
+        '''Extracts all available categories from the dropdown list.
+        Args:
+            
+            categories = [element.text for element in self.browser.get_webelements(self.xpath_categories)]
+
+            # Remove numbers from each category name
+            cleaned_categories = [re.sub(r'\d+', '', category) for category in categories]
+            
+            return cleaned_categories
+        '''
         categories = [element.text for element in self.browser.get_webelements(self.xpath_categories)]
 
         # Remove numbers from each category name
@@ -133,21 +154,27 @@ class SearchResultsPage(NYTBasePage):
         return cleaned_categories
 
     def get_valid_categories(self):
-        """Checks if the provided categories are part of the available categories."""
-        available_categories = self.get_available_categories()
-        
+        '''Checks if the provided categories are part of the available categories.
+        Args:
+            '''
+
         # Return only those categories from news_categories that exist in the available_categories
+        available_categories = self.get_available_categories()
         valid_categories = [category for category in self.news_categories if category in available_categories]
         
         # Save output workitem - versioning valid categories
         self.wi.create_output_work_item({"valid_categories":valid_categories}, save=True)
 
         return valid_categories
-
+    
     def check_categories(self):
+        '''check_categories function.
+        
+        Args:
+        '''
+
         # Step 0: Filter out categories that are not present on the webpage
         valid_categories = self.get_valid_categories()    
-
         # If the resulting list is empty, only select 'Any'
         if not valid_categories:
             self.check_category("Any")
@@ -166,6 +193,11 @@ class SearchResultsPage(NYTBasePage):
             return
 
     def check_category(self, news_category):
+        '''check_category function.
+        
+        Args:
+        - news_category (): Description needed.
+        '''
 
         # XPath to locate the checkbox based on the inner text of its corresponding label
         checkbox_xpath = f'//label[contains(., "{news_category}")]/input[@type="checkbox"]'
@@ -177,25 +209,10 @@ class SearchResultsPage(NYTBasePage):
         if not is_checked:
             self.browser.click_element_when_clickable(checkbox_xpath)
 
-
-    def close_modals_updated(self):
-        """Close modals that might appear during page interactions."""
-        try:
-            # Wait for and click the terms update acceptance button (if it appears)
-            self.browser.click_element_when_clickable(self.terms_update_acceptance_selector, timeout=15)
-
-        except Exception as e:  # Catch all exceptions to be safe, but you can specify the exact exception type if desired
-            # If the modal doesn't appear within the timeout, just log a message and continue
-            print(f"Modal did not appear or could not be closed: {e}")
-
     def close_modals(self):
-        """Close modals that might appear during page interactions."""
-        try:
-            # Wait for and click the terms update acceptance button (if it appears)
-            self.browser.click_element_when_clickable(self.terms_update_acceptance_selector, timeout=15)
-        except Exception as e:
-            # If the modal doesn't appear within the timeout, just log a message and continue
-            print(f"Terms update acceptance modal did not appear or could not be closed: {e}")
+        '''Close modals that might appear during page interactions.
+        Args:
+        '''
 
         try:
             # Wait for and click the cookies acceptance button (if it appears)
@@ -205,13 +222,15 @@ class SearchResultsPage(NYTBasePage):
             print(f"Cookies acceptance modal did not appear or could not be closed: {e}")
 
     def apply_filters(self):
-        """
-        Apply filters on the search results page to narrow down the articles based on criteria.
+        '''Apply filters on the search results page to narrow down the articles based on criteria.
         
         Returns:
         - None
-        """
-        # Placeholder for the actual filter application logic from tasks.py
+        Args:
+            
+            Returns:
+            - None
+            '''
 
         # Close any modals that appear
         self.close_modals()
@@ -252,13 +271,16 @@ class SearchResultsPage(NYTBasePage):
  
 
     def extract_articles(self):
-        """
-        Extract article details like title, date, and description from the search results page.
+        '''Extract article details like title, date, and description from the search results page.
         
         Returns:
         - list: A list of dictionaries containing article details.
-        """
-        # Placeholder for the actual article extraction logic from tasks.py
+        Args:
+            
+            Returns:
+            - list: A list of dictionaries containing article details.
+            '''
+
         while True:
             try:
                 # Wait until the "SHOW MORE" button is clickable and click on it
