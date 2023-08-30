@@ -234,3 +234,15 @@ class ErrorHandler:
                     print(f"{error_message} Original error: {str(e)}")
             return wrapper
         return decorator
+
+class ErrorHandlingContext:
+    def __init__(self, message):
+        self.message = message
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type:
+            ErrorHandler.handle_errors(self.message)(lambda: None)()  # Use our error handler
+        return True  # Suppress the exception
