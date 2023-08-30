@@ -1,9 +1,13 @@
 [
     {
         "payload": {
-            "search_phrase": "brazil",
-            "news_categories": ["Any"],
-            "number_of_months": 1
+            "search_phrase": "fifa",
+            "news_categories": [
+                "Sports",
+                "World",
+                "Opinion"
+              ],
+            "number_of_months": 12
         },
         "files": {}
     }
