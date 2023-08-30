@@ -257,63 +257,61 @@ class SearchResultsPage(NYTBasePage):
         with ErrorHandlingContext("Error when collapsing magnifier button"):
             self.browser.click_element_when_clickable(self.multiselect_button, timeout=10)
 
-
- 
-
     def extract_articles(self):
         '''Extract article details like title, date, and description from the search results page.
         
         Returns:
         - list: A list of dictionaries containing article details.
-        Args:
-            
-            Returns:
-            - list: A list of dictionaries containing article details.
-            '''
+        '''
 
-        while True:
-            try:
-                # Wait until the "SHOW MORE" button is clickable and click on it
-                self.browser.click_element_when_clickable(show_more_button, timeout=2)
+        with ErrorHandlingContext("Error when handling the 'SHOW MORE' button"):
+            while True:
+                try:
+                    # Wait until the "SHOW MORE" button is clickable and click on it
+                    self.browser.click_element_when_clickable(show_more_button, timeout=2)
+                except:
+                    # If the "SHOW MORE" button is not found or not clickable within the timeout period, break out of the loop
+                    break
 
-            except:
-                # If the "SHOW MORE" button is not found or not clickable within the timeout period, break out of the loop
-                break
-
-        # get data
         articles_data = []
 
-        # Locate all root div elements for articles based on a structure commonality.
-        article_divs = self.browser.find_elements(self.root_div_elements_css)
+        with ErrorHandlingContext("Error when locating article div elements"):
+            # Locate all root div elements for articles based on a structure commonality.
+            article_divs = self.browser.find_elements(self.root_div_elements_css)
 
         for div in article_divs:
+            with ErrorHandlingContext("Error when extracting article details"):
+                # Use the helper function
+                date = self.utils.text_to_formatted_date(self.utils.safe_get_text(f"css:.css-{self.date_locator}", parent=div))
 
-            # Use the helper function
-            date = self.utils.text_to_formatted_date(self.utils.safe_get_text(f"css:.css-{self.date_locator}", parent=div))
+                # If date is out of the range, skip the current iteration
+                if not self.utils.is_date_in_range(date, self.search_dates_range):
+                    continue
 
-            # If date is out of the range, skip the current iteration
-            if not self.utils.is_date_in_range(date, self.search_dates_range):
-                continue
+                title = self.utils.safe_get_text(f"css:.css-{self.title_locator}", parent=div)
+                description = self.utils.safe_get_text(f"css:.css-{self.description_locator}", parent=div)
+                image_url = self.utils.safe_get_image_url(f"css:.css-{self.image_locator}", parent=div)
 
-            title = self.utils.safe_get_text(f"css:.css-{self.title_locator}", parent=div)
-            description = self.utils.safe_get_text(f"css:.css-{self.description_locator}", parent=div)
-            image_url = self.utils.safe_get_image_url(f"css:.css-{self.image_locator}", parent=div)
+                # download image by the url
+                print(f"\nDownloading image with: date:{date}\ntitle:{title}\n")
+                picture_filename = self.utils.download_image_with_uuid(image_url, self.directory_output_path)
 
-            # download image by the url
-            print(f"\nDownloading image with: date:{date}\ntitle:{title}\n")
-            picture_filename = self.utils.download_image_with_uuid(image_url, self.directory_output_path)
+                # Storing data in a dictionary and appending to the list
+                article_data = {
+                    "date": date,
+                    "title": title,
+                    "description": description,
+                    "picture_filename": picture_filename,
+                    "contains_money_format_on_title_or_description": self.utils.contains_money_format_on_title_or_description(title, description),
+                    "count_search_phrases": self.utils.count_search_phrases(title, description, self.search_phrase)
+                }
+                articles_data.append(article_data)
 
-            # Storing data in a dictionary and appending to the list
-            article_data = {
-                "date": date,
-                "title": title,
-                "description": description,
-                "picture_filename": picture_filename,
-                "contains_money_format_on_title_or_description": self.utils.contains_money_format_on_title_or_description(title, description),
-                "count_search_phrases": self.utils.count_search_phrases(title, description, self.search_phrase)
-            }
-            articles_data.append(article_data)
+        with ErrorHandlingContext("Error when filtering articles by date range and creating Excel"):
+            # As the datetime filter of nytimes is not working as expected, we need to filter the articles for the data range that we want
+            filtred_articles = self.filter_articles_by_search_dates_range(articles_data)
+            self.excel_handler.create_excel(filtred_articles)
 
-        # As the datetime filter of nytimes is not working as expected, we need to filter the articles for the data range that we want
-        filtred_articles = self.filter_articles_by_search_dates_range(articles_data)
-        self.excel_handler.create_excel(filtred_articles)
+            # As the datetime filter of nytimes is not working as expected, we need to filter the articles for the data range that we want
+            filtred_articles = self.filter_articles_by_search_dates_range(articles_data)
+            self.excel_handler.create_excel(filtred_articles)
