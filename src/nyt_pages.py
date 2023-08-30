@@ -3,7 +3,7 @@ import re
 import datetime
 from time import sleep
 import logging
-from src.utility import Utility, ErrorHandler
+from src.utility import Utility, ErrorHandler, ErrorHandlingContext
 from src.excel_handler import ExcelHandler
 import json
 
@@ -227,46 +227,36 @@ class SearchResultsPage(NYTBasePage):
         Returns:
         - None
         Args:
-            
-            Returns:
-            - None
-            '''
+        '''
 
-        # Close any modals that appear
-        self.close_modals()
+        with ErrorHandlingContext("Error when closing modals"):
+            self.close_modals()
 
-        # Click on magnifier button
-        self.browser.click_element_when_clickable(self.magnifier_button, timeout=10)
+        with ErrorHandlingContext("Error when clicking on magnifier button"):
+            self.browser.click_element_when_clickable(self.magnifier_button, timeout=10)
 
-        # Input the term into the search field using the browser
-        self.browser.input_text_when_element_is_visible(self.search_input_selector, self.search_phrase)
+        with ErrorHandlingContext("Error when inputting the search term"):
+            self.browser.input_text_when_element_is_visible(self.search_input_selector, self.search_phrase)
 
-        # Click on magnifier button
-        self.browser.click_element_when_clickable(self.go_button, timeout=10)
+        with ErrorHandlingContext("Error when clicking on magnifier button"):
+            self.browser.click_element_when_clickable(self.go_button, timeout=10)
 
-        # Click on multiselect date range button button to Collapse
-        self.browser.click_element_when_clickable(self.multiselect_date_range_button, timeout=10)
+        with ErrorHandlingContext("Error when selecting date range"):
+            self.browser.click_element_when_clickable(self.multiselect_date_range_button, timeout=10)
+            self.browser.click_element_when_clickable(self.specific_dates_button, timeout=10)
+            self.browser.input_text_when_element_is_visible(self.start_date_input_button, self.search_dates_range["start_date"])
+            self.browser.input_text_when_element_is_visible(self.end_date_input_button, self.search_dates_range["end_date"])
+            self.browser.press_keys(self.end_date_input_button , "ENTER")
 
-        # Click on specific dates
-        self.browser.click_element_when_clickable(self.specific_dates_button, timeout=10)
+        with ErrorHandlingContext("Error when clicking on magnifier button"):
+            self.browser.click_element_when_clickable(self.multiselect_button, timeout=10)
 
-        # Input the start_date 
-        self.browser.input_text_when_element_is_visible(self.start_date_input_button, self.search_dates_range["start_date"])
+        with ErrorHandlingContext("Error when checking categories"):
+            self.check_categories()
 
-        # Input date the end_date 
-        self.browser.input_text_when_element_is_visible(self.end_date_input_button, self.search_dates_range["end_date"])
+        with ErrorHandlingContext("Error when collapsing magnifier button"):
+            self.browser.click_element_when_clickable(self.multiselect_button, timeout=10)
 
-        # Click Enter
-        self.browser.press_keys(self.end_date_input_button , "ENTER")
-    
-        # Click on magnifier button
-        self.browser.click_element_when_clickable(self.multiselect_button, timeout=10)
-
-        # Check checkbox category
-        self.check_categories()
-
-        # Click on magnifier button to Collapse
-        self.browser.click_element_when_clickable(self.multiselect_button, timeout=10)
 
  
 
