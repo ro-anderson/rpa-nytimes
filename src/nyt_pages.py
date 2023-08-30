@@ -17,13 +17,13 @@ class NYTBasePage:
     @ErrorHandler.handle_errors("Error when opening the website.")
     def open_the_website(self, url):
         '''Open the specified website URL in the browser.
-        
+
         Args:
         - url (): Description needed.
-            
+
             Args:
             - url (str): The website URL to open.
-            
+
             Returns:
             - None
             '''
@@ -42,7 +42,6 @@ class SearchResultsPage(NYTBasePage):
     def __init__(self, browser):
         super().__init__(browser)
         self.utils = Utility(browser)
-
         self.wi = WorkItems()
         self.wi.get_input_work_item()
         self.input_wi = self.wi.get_work_item_variables() 
@@ -50,7 +49,6 @@ class SearchResultsPage(NYTBasePage):
         self.news_categories = self.input_wi["news_categories"]
         self.number_of_months = self.input_wi["number_of_months"]
         self.excel_handler = ExcelHandler()
-        
         self.search_dates_range = self.utils.calculate_search_dates_range(self.number_of_months)
         self.config = self.load_config()
 
@@ -78,7 +76,7 @@ class SearchResultsPage(NYTBasePage):
 
     def load_config(self, filename="config.json"):
         '''load_config function.
-        
+
         Args:
         - filename (): Description needed.
         '''
@@ -88,69 +86,69 @@ class SearchResultsPage(NYTBasePage):
 
     def filter_articles_by_search_dates_range(self, articles):
         '''Filters articles based on a given date range.
-        
+
         Args:
         - articles (): Description needed.
-            
+
             Args:
             - articles (list): List of article dictionaries.
             - search_dates_range (dict): Dictionary with 'start_date' and 'end_date' keys.
-            
+
             Returns:
             - list: Filtered list of articles.
             '''
-        
+
         # Convert the start_date and end_date strings to datetime objects
         start_date = datetime.datetime.strptime(self.search_dates_range['start_date'], '%m/%d/%Y')
         end_date = datetime.datetime.strptime(self.search_dates_range['end_date'], '%m/%d/%Y')
-        
+
         # Filter the articles based on the date range
         filtered_articles = [
             article for article in articles
             if start_date <= datetime.datetime.strptime(self.utils.text_to_formatted_date(article['date']), '%m/%d/%Y') <= end_date
         ]
-        
+
         return filtered_articles
 
     def count_search_phrases(self, title: str, description: str, term: str) -> int:
         '''Counts the occurrences of the search phrase (term) in the title and description.
-        
+
         Args:
         - title (): Description needed.
         - description (): Description needed.
         - term (): Description needed.
-            
+
             Args:
             - title (str): The article title.
             - description (str): The article description.
             - term (str): The search phrase.
-        
+
             Returns:
             - int: The total count of the search phrase in the title and description.
             '''
-        
+
         # Counting occurrences of term in both title and description
         count_in_title = title.lower().count(term.lower())
         count_in_description = description.lower().count(term.lower())
-        
+
         return count_in_title + count_in_description
 
     def get_available_categories(self):
         '''Extracts all available categories from the dropdown list.
         Args:
-            
+
             categories = [element.text for element in self.browser.get_webelements(self.xpath_categories)]
 
             # Remove numbers from each category name
             cleaned_categories = [re.sub(r'\d+', '', category) for category in categories]
-            
+
             return cleaned_categories
         '''
         categories = [element.text for element in self.browser.get_webelements(self.xpath_categories)]
 
         # Remove numbers from each category name
         cleaned_categories = [re.sub(r'\d+', '', category) for category in categories]
-        
+
         return cleaned_categories
 
     def get_valid_categories(self):
@@ -161,15 +159,15 @@ class SearchResultsPage(NYTBasePage):
         # Return only those categories from news_categories that exist in the available_categories
         available_categories = self.get_available_categories()
         valid_categories = [category for category in self.news_categories if category in available_categories]
-        
+
         # Save output workitem - versioning valid categories
         self.wi.create_output_work_item({"valid_categories":valid_categories}, save=True)
 
         return valid_categories
-    
+
     def check_categories(self):
         '''check_categories function.
-        
+
         Args:
         '''
 
@@ -194,17 +192,17 @@ class SearchResultsPage(NYTBasePage):
 
     def check_category(self, news_category):
         '''check_category function.
-        
+
         Args:
         - news_category (): Description needed.
         '''
 
         # XPath to locate the checkbox based on the inner text of its corresponding label
         checkbox_xpath = f'//label[contains(., "{news_category}")]/input[@type="checkbox"]'
-        
+
         # Check if the checkbox is already checked
         is_checked = self.browser.is_element_attribute_equal_to(checkbox_xpath, "checked", "true")
-        
+
         # If the checkbox is not already checked, click on it
         if not is_checked:
             self.browser.click_element_when_clickable(checkbox_xpath)
@@ -223,7 +221,7 @@ class SearchResultsPage(NYTBasePage):
 
     def apply_filters(self):
         '''Apply filters on the search results page to narrow down the articles based on criteria.
-        
+
         Returns:
         - None
         Args:
@@ -259,7 +257,7 @@ class SearchResultsPage(NYTBasePage):
 
     def extract_articles(self):
         '''Extract article details like title, date, and description from the search results page.
-        
+
         Returns:
         - list: A list of dictionaries containing article details.
         '''
